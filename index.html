@@ -63,7 +63,8 @@
             const btn = document.querySelector('button');
             btn.innerText = "분석 중...";
             try {
-                const res = await fetch(`http://localhost:8000/analyze?name=${encodeURIComponent(name)}`);
+                const res = await fetch(`https://casting-intelligence-tool.onrender.com
+            
                 const data = await res.json();
                 
                 document.getElementById('resName').innerText = data.name;
