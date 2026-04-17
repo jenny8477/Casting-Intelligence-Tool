@@ -5,40 +5,120 @@
     <title>Global Casting AI Dashboard PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #09090b; color: #fff; font-family: 'Inter', sans-serif; }
-        .glass { background: #18181b; border: 1px solid #27272a; border-radius: 24px; padding: 32px; }
+        /* ───── 공통 ───── */
+        body { font-family: 'Inter', sans-serif; transition: background-color .3s ease, color .3s ease; }
+        .glass { border-radius: 24px; padding: 32px; transition: background .3s, border-color .3s; }
         .accent-blue { color: #3b82f6; }
-        .btn-gradient { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); transition: 0.3s; }
+        .btn-gradient { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); transition: .3s; color: #fff; }
         .btn-gradient:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+        .btn-gradient:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* ───── 기본 = LIGHT 모드 ───── */
+        body { background-color: #fafafa; color: #18181b; }
+        .glass { background: #ffffff; border: 1px solid #e4e4e7; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
+
+        body:not(.dark) .bg-zinc-900 { background-color: #f4f4f5 !important; }
+        body:not(.dark) .bg-zinc-800 { background-color: #fafafa !important; }
+        body:not(.dark) .bg-zinc-800\/60 { background-color: rgba(244, 244, 245, .7) !important; }
+        body:not(.dark) .bg-zinc-800\/50 { background-color: rgba(244, 244, 245, .55) !important; }
+        body:not(.dark) .bg-zinc-900\/60 { background-color: rgba(228, 228, 231, .7) !important; }
+        body:not(.dark) .bg-zinc-900\/70 { background-color: rgba(228, 228, 231, .75) !important; }
+        body:not(.dark) .bg-zinc-700 { background-color: #e4e4e7 !important; }
+        body:not(.dark) .hover\:bg-zinc-700:hover { background-color: #e4e4e7 !important; }
+        body:not(.dark) .text-zinc-300 { color: #27272a !important; }
+        body:not(.dark) .text-zinc-400 { color: #52525b !important; }
+        body:not(.dark) .text-zinc-500 { color: #71717a !important; }
+        body:not(.dark) .text-zinc-600 { color: #a1a1aa !important; }
+        body:not(.dark) .text-zinc-700 { color: #d4d4d8 !important; }
+        body:not(.dark) .border-zinc-800 { border-color: #e4e4e7 !important; }
+        body:not(.dark) .border-zinc-700 { border-color: #d4d4d8 !important; }
+        body:not(.dark) .border-zinc-800\/50 { border-color: rgba(228, 228, 231, .7) !important; }
+        body:not(.dark) input { background-color: #ffffff !important; color: #18181b !important; border-color: #d4d4d8 !important; }
+        body:not(.dark) input::placeholder { color: #a1a1aa !important; }
+        body:not(.dark) #themeToggle { background: #ffffff; border-color: #e4e4e7; color: #18181b; }
+
+        /* ───── DARK 모드 (body.dark) ───── */
+        body.dark { background-color: #09090b; color: #ffffff; }
+        body.dark .glass { background: #18181b; border-color: #27272a; box-shadow: none; }
+        body.dark #themeToggle { background: #27272a; border-color: #3f3f46; color: #fafafa; }
+
+        /* ───── 테마 토글 ───── */
+        #themeToggle {
+            position: fixed; top: 1.25rem; right: 1.25rem; z-index: 50;
+            width: 3rem; height: 3rem;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid; border-radius: 9999px;
+            font-size: 1.25rem; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,.08);
+            transition: transform .2s ease, background .3s, border-color .3s, color .3s;
+        }
+        #themeToggle:hover { transform: scale(1.1) rotate(12deg); }
     </style>
 </head>
 <body class="p-8">
+    <button id="themeToggle" type="button" title="테마 전환 (Light / Dark)" aria-label="테마 전환">
+        <span id="themeIcon">🌙</span>
+    </button>
     <div class="max-w-6xl mx-auto">
         <header class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
             <h1 class="text-3xl font-black italic tracking-tighter">CASTING<span class="accent-blue">.AI</span> PRO</h1>
             <div class="flex gap-4 w-full md:w-auto">
-                <input id="targetName" type="text" placeholder="셀럽 이름을 입력하세요" class="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl w-full md:w-72 outline-none focus:border-blue-500">
-                <button onclick="run()" class="btn-gradient px-10 py-4 rounded-2xl font-black whitespace-nowrap">분석 실행</button>
+                <input id="targetName" type="text" placeholder="셀럽 이름을 입력하세요"
+                    class="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl w-full md:w-72 outline-none focus:border-blue-500"
+                    onkeydown="if(event.key==='Enter') run()">
+                <button id="runBtn" onclick="run()" class="btn-gradient px-10 py-4 rounded-2xl font-black whitespace-nowrap">분석 실행</button>
             </div>
         </header>
 
         <div id="result" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- LEFT: Identity -->
             <div class="glass lg:col-span-1">
                 <p class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Talent Identity</p>
-                <img id="resImg" src="" class="w-full h-80 object-cover rounded-3xl mb-6 border border-zinc-800">
-                <h2 id="resName" class="text-4xl font-black mb-4">--</h2>
-                
-                <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl mb-4">
-                    <p class="text-red-400 text-xs font-bold uppercase">Risk Check</p>
-                    <p id="resRisk" class="text-sm">데이터 분석 중...</p>
+
+                <!-- 프로필 이미지 영역 -->
+                <div class="relative w-full h-80 mb-6">
+                    <img id="resImg" src="" alt="프로필"
+                        class="w-full h-80 object-cover rounded-3xl border border-zinc-800 hidden"
+                        onerror="showImgFallback()">
+                    <div id="imgFallback"
+                        class="hidden w-full h-80 bg-zinc-800 rounded-3xl border border-zinc-700 flex items-center justify-center flex-col gap-2">
+                        <span class="text-zinc-400 text-2xl">👤</span>
+                        <span class="text-zinc-500 text-xs">이미지 없음</span>
+                    </div>
                 </div>
 
-                <div class="p-6 bg-blue-600/10 rounded-3xl border border-blue-500/20">
-                    <p class="text-blue-400 text-xs font-bold mb-2 uppercase">Brand Fit Score</p>
-                    <p id="resScore" class="text-7xl font-black">0</p>
+                <h2 id="resName" class="text-4xl font-black mb-4">--</h2>
+
+                <!-- Risk -->
+                <div id="riskBox" class="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl mb-4">
+                    <p class="text-red-400 text-xs font-bold uppercase mb-1">Risk Check</p>
+                    <p id="resRisk" class="text-sm">--</p>
+                </div>
+
+                <!-- SNS Stats -->
+                <div class="grid grid-cols-2 gap-3">
+                    <a id="igCard" href="#" target="_blank" rel="noopener noreferrer"
+                        class="block p-4 rounded-2xl border border-pink-500/30 bg-gradient-to-br from-pink-500/15 to-purple-500/15 hover:from-pink-500/25 hover:to-purple-500/25 transition-all">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-pink-400 text-lg">📷</span>
+                            <span class="text-pink-400 text-[10px] font-bold uppercase tracking-widest">Instagram</span>
+                        </div>
+                        <p id="igFollowers" class="text-2xl font-black leading-tight">--</p>
+                        <p class="text-zinc-500 text-[10px] mt-1">Followers</p>
+                    </a>
+                    <a id="ytCard" href="#" target="_blank" rel="noopener noreferrer"
+                        class="block p-4 rounded-2xl border border-red-500/30 bg-gradient-to-br from-red-500/15 to-rose-700/15 hover:from-red-500/25 hover:to-rose-700/25 transition-all">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-red-400 text-lg">▶️</span>
+                            <span class="text-red-400 text-[10px] font-bold uppercase tracking-widest">YouTube</span>
+                        </div>
+                        <p id="ytSubs" class="text-2xl font-black leading-tight">--</p>
+                        <p class="text-zinc-500 text-[10px] mt-1">Subscribers</p>
+                    </a>
                 </div>
             </div>
 
+            <!-- RIGHT: Insights -->
             <div class="lg:col-span-2 space-y-6">
                 <div class="glass border-l-4 border-l-blue-500">
                     <h3 class="text-xs font-bold text-blue-500 mb-4 uppercase tracking-widest">Global & Market Insight</h3>
@@ -48,43 +128,279 @@
                 </div>
 
                 <div class="glass">
-                    <h4 class="font-bold mb-4 text-zinc-500 flex items-center gap-2">📺 TOP PERFORMANCE VIDEO</h4>
-                    <a id="resYtLink" href="#" target="_blank" class="block p-4 bg-zinc-800 rounded-2xl hover:bg-blue-600 transition-all">
-                        <p id="resYtTitle" class="font-bold">인기 영상 분석 결과 보기 →</p>
-                    </a>
+                    <div class="flex items-center justify-between mb-5 pb-4 border-b border-zinc-800">
+                        <div class="flex items-baseline gap-2">
+                            <div class="flex items-baseline text-2xl font-medium tracking-tight">
+                                <span style="color:#4285F4">G</span><span style="color:#EA4335">o</span><span style="color:#FBBC04">o</span><span style="color:#4285F4">g</span><span style="color:#34A853">l</span><span style="color:#EA4335">e</span>
+                                <span class="text-zinc-300 ml-2 text-xl">Trends</span>
+                            </div>
+                            <span class="text-zinc-500 text-xs ml-3">지역별 관심도</span>
+                        </div>
+                        <span id="interestSourceLabel" class="text-[10px] text-zinc-600 italic"></span>
+                    </div>
+                    <div id="globalTableBody" class="space-y-4"></div>
+                </div>
+
+                <div class="glass">
+                    <div class="flex items-baseline justify-between mb-4">
+                        <h4 class="font-bold text-zinc-500 flex items-center gap-2">📺 TOP PERFORMANCE VIDEOS</h4>
+                        <span class="text-[10px] text-zinc-600 italic">검색 1위 + 최다 조회 + 인기 영상</span>
+                    </div>
+                    <div id="ytList" class="space-y-2"></div>
+                    <div id="ytFallback" class="hidden p-4 bg-zinc-900 rounded-2xl border border-zinc-700">
+                        <p class="text-zinc-500 text-sm">YouTube 영상 데이터를 가져오지 못했습니다</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // ───── 테마 토글 (Light / Dark) ─────
+        (function initTheme() {
+            const saved = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = saved || (prefersDark ? 'dark' : 'light');
+            applyTheme(theme);
+        })();
+
+        function applyTheme(theme) {
+            const icon = document.getElementById('themeIcon');
+            if (theme === 'dark') {
+                document.body.classList.add('dark');
+                if (icon) icon.textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark');
+                if (icon) icon.textContent = '🌙';
+            }
+        }
+
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const next = document.body.classList.contains('dark') ? 'light' : 'dark';
+            localStorage.setItem('theme', next);
+            applyTheme(next);
+        });
+
+        function showImgFallback() {
+            document.getElementById('resImg').classList.add('hidden');
+            document.getElementById('imgFallback').classList.remove('hidden');
+        }
+
+        function setImg(src) {
+            const img = document.getElementById('resImg');
+            const fallback = document.getElementById('imgFallback');
+            if (src) {
+                img.src = src;
+                img.classList.remove('hidden');
+                fallback.classList.add('hidden');
+            } else {
+                img.classList.add('hidden');
+                fallback.classList.remove('hidden');
+            }
+        }
+
+        function badgeClass(badge) {
+            if (!badge) return 'bg-zinc-700 text-zinc-300';
+            if (badge.includes('검색')) return 'bg-blue-500/20 text-blue-300 border border-blue-500/40';
+            if (badge.includes('최다')) return 'bg-red-500/20 text-red-300 border border-red-500/40';
+            if (badge.includes('인기')) return 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+            return 'bg-zinc-700/40 text-zinc-300';
+        }
+
+        function setYoutube(videos) {
+            const list = document.getElementById('ytList');
+            const fallback = document.getElementById('ytFallback');
+
+            if (!Array.isArray(videos) || videos.length === 0) {
+                list.innerHTML = '';
+                list.classList.add('hidden');
+                fallback.classList.remove('hidden');
+                return;
+            }
+
+            list.classList.remove('hidden');
+            fallback.classList.add('hidden');
+
+            list.innerHTML = videos.map(v => {
+                const title = escapeHtml(v.title || '');
+                const link = escapeHtml(v.link || '#');
+                const badge = escapeHtml(v.badge || '');
+                const channel = escapeHtml(v.channel || '');
+                const viewText = escapeHtml(v.view_text || '-');
+                const published = escapeHtml(v.published || '');
+                const length = escapeHtml(v.length || '');
+                return `<a href="${link}" target="_blank" rel="noopener noreferrer"
+                    class="block p-3 bg-zinc-800/60 hover:bg-zinc-700 rounded-2xl transition-all group">
+                    <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeClass(v.badge)}">${badge}</span>
+                        ${length ? `<span class="text-[10px] font-mono text-zinc-500 bg-zinc-900/70 px-1.5 py-0.5 rounded">${length}</span>` : ''}
+                    </div>
+                    <p class="font-bold text-sm mb-1 line-clamp-2 group-hover:text-blue-300">${title}</p>
+                    <div class="text-xs text-zinc-500 flex items-center gap-2 flex-wrap">
+                        <span class="text-red-400 font-semibold">${channel}</span>
+                        <span class="text-zinc-700">·</span>
+                        <span>👁 ${viewText}</span>
+                        ${published ? `<span class="text-zinc-700">·</span><span>${published}</span>` : ''}
+                    </div>
+                </a>`;
+            }).join('');
+        }
+
+        function setRisk(risk) {
+            const box = document.getElementById('riskBox');
+            const el = document.getElementById('resRisk');
+            if (!risk) {
+                el.innerText = '데이터 수집 실패';
+                box.className = 'p-4 bg-zinc-800 border border-zinc-600 rounded-2xl mb-4';
+                return;
+            }
+            el.innerText = risk;
+            if (risk.startsWith('⚠️')) {
+                box.className = 'p-4 bg-red-500/10 border border-red-500/30 rounded-2xl mb-4';
+            } else {
+                box.className = 'p-4 bg-green-500/10 border border-green-500/30 rounded-2xl mb-4';
+            }
+        }
+
+        function escapeHtml(s) {
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function setGlobalTable(interest) {
+            const body = document.getElementById('globalTableBody');
+            const label = document.getElementById('interestSourceLabel');
+            const countries = (interest && interest.countries) || [];
+            const source = interest && interest.source;
+
+            if (source === 'google_trends') {
+                label.innerText = '🔴 Google Trends · 최근 12개월';
+            } else if (source === 'wikipedia') {
+                label.innerText = '📘 Wikipedia 페이지뷰 · 최근 30일 (Google Trends 대체)';
+            } else {
+                label.innerText = '';
+            }
+
+            if (countries.length === 0) {
+                body.innerHTML = '<div class="text-zinc-600 py-6 text-center italic">국가별 관심도 데이터 없음</div>';
+                return;
+            }
+
+            body.innerHTML = countries.map((c, i) => {
+                const rank = i + 1;
+                const flag = escapeHtml(c.flag || '🌐');
+                const country = escapeHtml(c.country || '-');
+                const score = Math.max(0, Math.min(100, parseInt(c.score, 10) || 0));
+                return `<div class="flex items-center gap-4">
+                    <div class="w-6 text-zinc-500 text-sm text-right">${rank}</div>
+                    <div class="w-7 text-xl leading-none">${flag}</div>
+                    <div class="flex-1 text-sm font-medium truncate">${country}</div>
+                    <div class="w-10 text-right font-mono text-sm tabular-nums text-zinc-300">${score}</div>
+                    <div class="w-40 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-500 rounded-full transition-all duration-700" style="width: ${score}%"></div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function setSocialCard(prefix, url, count) {
+            const card = document.getElementById(prefix + 'Card');
+            const countEl = document.getElementById(prefix === 'ig' ? 'igFollowers' : 'ytSubs');
+            countEl.innerText = count || 'N/A';
+            if (url) {
+                card.href = url;
+                card.classList.remove('opacity-50', 'pointer-events-none', 'cursor-not-allowed');
+            } else {
+                card.href = '#';
+                card.classList.add('opacity-50', 'pointer-events-none', 'cursor-not-allowed');
+            }
+        }
+
+        function setNewsEffect(news) {
+            const el = document.getElementById('resNewsEffect');
+            if (!news || news.length === 0) {
+                el.innerHTML = '<li class="text-zinc-600 italic">관련 광고·마케팅 뉴스 없음</li>';
+                return;
+            }
+            el.innerHTML = news.map(n => {
+                const title = escapeHtml(n.title || '');
+                const link = escapeHtml(n.link || '');
+                const source = n.source ? `<span class="text-zinc-600 text-xs ml-2">— ${escapeHtml(n.source)}</span>` : '';
+                return `<li class="border-b border-zinc-800/50 pb-2">
+                    <a href="${link}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-400 transition-colors">
+                        📈 ${title}${source}
+                    </a>
+                </li>`;
+            }).join('');
+        }
+
         async function run() {
-            const name = document.getElementById('targetName').value;
-            if(!name) return;
-            const btn = document.querySelector('button');
-            btn.innerText = "분석 중...";
-            
+            const name = document.getElementById('targetName').value.trim();
+            if (!name) return;
+
+            const btn = document.getElementById('runBtn');
+            btn.disabled = true;
+            btn.innerText = '분석 중...';
+
             try {
-                // [주의] 여기서 본인의 진짜 Render 주소로 잘 적혀있는지 확인하세요!
-                const res = await fetch(`https://jenny-casting-tool.onrender.com/analyze?name=${encodeURIComponent(name)}`);
+                const res = await fetch(`/analyze?name=${encodeURIComponent(name)}`);
+
+                if (!res.ok) {
+                    throw new Error(`서버 오류 ${res.status}: ${res.statusText}`);
+                }
+
                 const data = await res.json();
-                
-                document.getElementById('resName').innerText = data.name;
-                document.getElementById('resImg').src = data.profile_img;
-                document.getElementById('resScore').innerText = data.score;
-                document.getElementById('resRisk').innerText = data.risk;
-                document.getElementById('resGlobal').innerText = data.global;
-                document.getElementById('resSummary').innerText = data.summary;
-                document.getElementById('resYtTitle').innerText = data.top_yt.title;
-                document.getElementById('resYtLink').href = data.top_yt.link;
-                
-                document.getElementById('resNewsEffect').innerHTML = data.news_effect.map(n => `<li class="border-b border-zinc-800/50 pb-2">📈 ${n}</li>`).join('');
-                
+                console.log('[분석 결과]', data);
+
+                // 이름
+                document.getElementById('resName').innerText = data.name ?? name;
+
+                // 프로필 이미지
+                setImg(data.profile_img ?? null);
+
+                // 리스크
+                setRisk(data.risk ?? null);
+
+                // SNS 카드 (IG, YT)
+                setSocialCard('ig', data.ig_url, data.ig_followers);
+                setSocialCard('yt', data.yt_url, data.yt_subs);
+
+                // 글로벌
+                document.getElementById('resGlobal').innerText =
+                    data.global ?? '글로벌 데이터 없음 (Wikipedia 미등재)';
+
+                // 요약
+                document.getElementById('resSummary').innerText = data.summary ?? '';
+
+                // 뉴스 효과
+                setNewsEffect(data.news_effect);
+
+                // 글로벌 국가별 관심도 테이블
+                setGlobalTable(data.global_interest);
+
+                // YouTube
+                setYoutube(data.top_yt ?? null);
+
+                // 결과 패널 표시
                 document.getElementById('result').classList.remove('hidden');
-            } catch(e) { 
-                alert("데이터 분석 실패! Render 주소가 맞는지 확인해 주세요."); 
-            } finally { 
-                btn.innerText = "분석 실행"; 
+
+                // 수집 실패 항목 알림
+                if (data.errors && data.errors.length > 0) {
+                    alert(
+                        `⚠️ 일부 데이터를 가져오지 못했습니다:\n\n` +
+                        data.errors.map(e => `• ${e}`).join('\n')
+                    );
+                }
+
+            } catch (e) {
+                console.error('[ERROR]', e);
+                alert(`분석 실패\n\n${e.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '분석 실행';
             }
         }
     </script>
