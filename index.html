@@ -1,31 +1,92 @@
-<div id="result" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <div class="glass lg:col-span-1">
-        <img id="resImg" src="" class="w-full h-80 object-cover rounded-3xl mb-6 border border-zinc-800">
-        <h2 id="resName" class="text-4xl font-black mb-4">--</h2>
-        
-        <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl mb-4">
-            <p class="text-red-400 text-xs font-bold uppercase">Risk Check</p>
-            <p id="resRisk" class="text-sm">데이터 분석 중...</p>
-        </div>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Global Casting AI Dashboard PRO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #09090b; color: #fff; font-family: 'Inter', sans-serif; }
+        .glass { background: #18181b; border: 1px solid #27272a; border-radius: 24px; padding: 32px; }
+        .accent-blue { color: #3b82f6; }
+        .btn-gradient { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); transition: 0.3s; }
+        .btn-gradient:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-6xl mx-auto">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
+            <h1 class="text-3xl font-black italic tracking-tighter">CASTING<span class="accent-blue">.AI</span> PRO</h1>
+            <div class="flex gap-4 w-full md:w-auto">
+                <input id="targetName" type="text" placeholder="셀럽 이름을 입력하세요" class="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl w-full md:w-72 outline-none focus:border-blue-500">
+                <button onclick="run()" class="btn-gradient px-10 py-4 rounded-2xl font-black whitespace-nowrap">분석 실행</button>
+            </div>
+        </header>
 
-        <div class="p-6 bg-blue-600/10 rounded-3xl border border-blue-500/20">
-            <p class="text-blue-400 text-xs font-bold mb-2 uppercase">Brand Fit Score</p>
-            <p id="resScore" class="text-7xl font-black">0</p>
+        <div id="result" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="glass lg:col-span-1">
+                <p class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Talent Identity</p>
+                <img id="resImg" src="" class="w-full h-80 object-cover rounded-3xl mb-6 border border-zinc-800">
+                <h2 id="resName" class="text-4xl font-black mb-4">--</h2>
+                
+                <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl mb-4">
+                    <p class="text-red-400 text-xs font-bold uppercase">Risk Check</p>
+                    <p id="resRisk" class="text-sm">데이터 분석 중...</p>
+                </div>
+
+                <div class="p-6 bg-blue-600/10 rounded-3xl border border-blue-500/20">
+                    <p class="text-blue-400 text-xs font-bold mb-2 uppercase">Brand Fit Score</p>
+                    <p id="resScore" class="text-7xl font-black">0</p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 space-y-6">
+                <div class="glass border-l-4 border-l-blue-500">
+                    <h3 class="text-xs font-bold text-blue-500 mb-4 uppercase tracking-widest">Global & Market Insight</h3>
+                    <p id="resGlobal" class="text-lg font-bold mb-4">--</p>
+                    <div id="resSummary" class="text-zinc-400 text-sm mb-4 italic"></div>
+                    <ul id="resNewsEffect" class="space-y-2 text-sm text-zinc-400"></ul>
+                </div>
+
+                <div class="glass">
+                    <h4 class="font-bold mb-4 text-zinc-500 flex items-center gap-2">📺 TOP PERFORMANCE VIDEO</h4>
+                    <a id="resYtLink" href="#" target="_blank" class="block p-4 bg-zinc-800 rounded-2xl hover:bg-blue-600 transition-all">
+                        <p id="resYtTitle" class="font-bold">인기 영상 분석 결과 보기 →</p>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="lg:col-span-2 space-y-6">
-        <div class="glass border-l-4 border-l-blue-500">
-            <h3 class="text-xs font-bold text-blue-500 mb-4 uppercase tracking-widest">Global & Market Insight</h3>
-            <p id="resGlobal" class="text-lg font-bold mb-4">--</p>
-            <ul id="resNewsEffect" class="space-y-2 text-sm text-zinc-400"></ul>
-        </div>
-
-        <div class="glass">
-            <h4 class="font-bold mb-4 text-zinc-500 flex items-center gap-2">📺 TOP PERFORMANCE VIDEO</h4>
-            <a id="resYtLink" href="#" target="_blank" class="block p-4 bg-zinc-800 rounded-2xl hover:bg-blue-600 transition-all">
-                <p id="resYtTitle" class="font-bold">인기 영상 분석 결과 보기 →</p>
-            </a>
-        </div>
-    </div>
-</div>
+    <script>
+        async function run() {
+            const name = document.getElementById('targetName').value;
+            if(!name) return;
+            const btn = document.querySelector('button');
+            btn.innerText = "분석 중...";
+            
+            try {
+                // [주의] 여기서 본인의 진짜 Render 주소로 잘 적혀있는지 확인하세요!
+                const res = await fetch(`https://jenny-casting-tool.onrender.com/analyze?name=${encodeURIComponent(name)}`);
+                const data = await res.json();
+                
+                document.getElementById('resName').innerText = data.name;
+                document.getElementById('resImg').src = data.profile_img;
+                document.getElementById('resScore').innerText = data.score;
+                document.getElementById('resRisk').innerText = data.risk;
+                document.getElementById('resGlobal').innerText = data.global;
+                document.getElementById('resSummary').innerText = data.summary;
+                document.getElementById('resYtTitle').innerText = data.top_yt.title;
+                document.getElementById('resYtLink').href = data.top_yt.link;
+                
+                document.getElementById('resNewsEffect').innerHTML = data.news_effect.map(n => `<li class="border-b border-zinc-800/50 pb-2">📈 ${n}</li>`).join('');
+                
+                document.getElementById('result').classList.remove('hidden');
+            } catch(e) { 
+                alert("데이터 분석 실패! Render 주소가 맞는지 확인해 주세요."); 
+            } finally { 
+                btn.innerText = "분석 실행"; 
+            }
+        }
+    </script>
+</body>
+</html>
